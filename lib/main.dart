@@ -1,8 +1,8 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:mask/model/store.dart';
+import 'package:mask/repository/store_repository.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,33 +32,20 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<Store> stores = [];
-  var isLoading = true;
+  List<Store> stores = [];
+  var isLoading = false;
 
-  Future<void> fetch() async {
-    setState(() {
-      isLoading = true;
-    });
-    var url =
-        'https://gist.githubusercontent.com/junsuk5/bb7485d5f70974deee920b8f0cd1e2f0/raw/063f64d9b343120c2cb01a6555cf9b38761b1d94/sample.json?lat=37.266389&lng=126.999333&m=5000';
-
-    var response = await http.get(Uri.parse(url));
-    final jsonResult = jsonDecode(utf8.decode(response.bodyBytes));
-    final jsonStores = jsonResult['stores'];
-
-    setState(() {
-      stores.clear();
-      jsonStores.forEach((e) {
-        stores.add(Store.fromJson(e));
-      });
-      isLoading = false;
-    });
-  }
+  final storeRepository = StoreRepository();
 
   @override
   void initState() {
     super.initState();
-    fetch();
+
+    storeRepository.fetch().then((value) {
+      setState(() {
+        stores = value;
+      });
+    });
   }
 
   @override
@@ -73,7 +60,13 @@ class _MyHomePageState extends State<MyHomePage> {
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: fetch,
+            onPressed: () {
+              storeRepository.fetch().then((stores) {
+                setState(() {
+                  stores = stores;
+                });
+              });
+            },
           )
         ],
       ),
