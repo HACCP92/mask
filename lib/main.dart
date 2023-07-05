@@ -41,10 +41,18 @@ class _MyHomePageState extends State<MyHomePage> {
     final jsonResult = jsonDecode(utf8.decode(response.bodyBytes));
     final jsonStores = jsonResult['stores'];
 
-    stores.clear();
-    jsonStores.forEach((e) {
-      stores.add(Store.fromJson(e));
+    setState(() {
+      stores.clear();
+      jsonStores.forEach((e) {
+        stores.add(Store.fromJson(e));
+      });
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetch();
   }
 
   @override
@@ -53,13 +61,14 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: const Text('마스크 재고 있는 곳 : 0곳'),
       ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () async {
-            await fetch();
-          },
-          child: const Text('테스트'),
-        ),
+      body: ListView(
+        children: stores.map((e) {
+          return ListTile(
+            title: Text(e.name ?? ''),
+            subtitle: Text(e.addr ?? ''),
+            trailing: Text(e.remainStat ?? '매진'),
+          );
+        }).toList(),
       ),
     );
   }
