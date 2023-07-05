@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: MyHomePage(),
+      home: const MyHomePage(),
     );
   }
 }
@@ -33,7 +33,12 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final List<Store> stores = [];
+  var isLoading = true;
+
   Future<void> fetch() async {
+    setState(() {
+      isLoading = true;
+    });
     var url =
         'https://gist.githubusercontent.com/junsuk5/bb7485d5f70974deee920b8f0cd1e2f0/raw/063f64d9b343120c2cb01a6555cf9b38761b1d94/sample.json?lat=37.266389&lng=126.999333&m=5000';
 
@@ -46,6 +51,7 @@ class _MyHomePageState extends State<MyHomePage> {
       jsonStores.forEach((e) {
         stores.add(Store.fromJson(e));
       });
+      isLoading = false;
     });
   }
 
@@ -59,16 +65,36 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('마스크 재고 있는 곳 : 0곳'),
+        title: Text('마스크 재고 있는 곳 : ${stores.length}곳'),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: fetch,
+          )
+        ],
       ),
-      body: ListView(
-        children: stores.map((e) {
-          return ListTile(
-            title: Text(e.name ?? ''),
-            subtitle: Text(e.addr ?? ''),
-            trailing: Text(e.remainStat ?? '매진'),
-          );
-        }).toList(),
+      body: isLoading == true
+          ? loadingWidget()
+          : ListView(
+              children: stores.map((e) {
+                return ListTile(
+                  title: Text(e.name ?? ''),
+                  subtitle: Text(e.addr ?? ''),
+                  trailing: Text(e.remainStat ?? '매진'),
+                );
+              }).toList(),
+            ),
+    );
+  }
+
+  Widget loadingWidget() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text('정보를 가져오는 중'),
+          CircularProgressIndicator(),
+        ],
       ),
     );
   }
